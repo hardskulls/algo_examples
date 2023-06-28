@@ -2,46 +2,52 @@ use std::collections::{HashMap, HashSet};
 
 type NodeGraph<K, V> = HashMap<K, HashMap<K, V>>;
 
-fn main() {
+fn main()
+{
     let (start, a, b, finish) = ("start", "a", "b", "fin");
-    let (start_neighbors, b_neighbors, a_neighbors, finish_neighbors) = (
-        new_h_map([(a, 6), (b, 2)]),
-        new_h_map([(a, 3), (finish, 5)]),
-        new_h_map([(finish, 1)]),
-        new_h_map([]),
-    );
-    let graph = NodeGraph::from([
-        (start, start_neighbors),
-        (b, b_neighbors),
-        (a, a_neighbors),
-        (finish, finish_neighbors),
-    ]);
+    let (start_neighbors, b_neighbors, a_neighbors, finish_neighbors) =
+        (
+            new_h_map([(a, 6), (b, 2)]),
+            new_h_map([(a, 3), (finish, 5)]),
+            new_h_map([(finish, 1)]),
+            new_h_map([]),
+        );
+    let graph =
+        NodeGraph::from
+            ([
+                (start, start_neighbors),
+                (b, b_neighbors),
+                (a, a_neighbors),
+                (finish, finish_neighbors),
+            ]);
 
     let expected = 6;
     let shortest_path = dejkstras_alg(&graph, start, finish).unwrap();
 
-    let print = if shortest_path <= expected {
-        format!("✨ It works! Answer is {shortest_path} ✅")
-    } else {
-        format!("🚧 Oh, shieeet, answer is {shortest_path} instead of {expected} ❌")
-    };
+    let print =
+        if shortest_path <= expected
+        { format!("✨ It works! Answer is {shortest_path} ✅") }
+        else
+        { format!("🚧 Oh, shieeet, answer is {shortest_path} instead of {expected} ❌") };
     let border_len = on_screen_len(&print) + 4;
     let border = String::from_iter(vec!['-'; border_len]);
     println!("{border}\n| {print} |\n{border}");
 }
 
-fn _at_idx(idx: usize) -> std::ops::RangeInclusive<usize> {
-    idx..=idx
-}
+fn _at_idx(idx: usize)
+    -> std::ops::RangeInclusive<usize>
+{ idx..=idx }
 
-fn is_emoji(c: char) -> bool {
-    match c {
-        '\u{01F600}'..='\u{01F64F}'
-        | '\u{01F300}'..='\u{01F5FF}'
-        | '\u{01F680}'..='\u{01F6FF}'
-        | '\u{01F1E0}'..='\u{01F1FF}'
-        | '\u{002702}'..='\u{0027B0}'
-        | '\u{0024C2}'..='\u{01F251}' => true,
+fn is_emoji(c: char) -> bool
+{
+    match c
+    {
+        '\u{01F600}'..='\u{01F64F}' |
+        '\u{01F300}'..='\u{01F5FF}' |
+        '\u{01F680}'..='\u{01F6FF}' |
+        '\u{01F1E0}'..='\u{01F1FF}' |
+        '\u{002702}'..='\u{0027B0}' |
+        '\u{0024C2}'..='\u{01F251}' => true,
         _ => false,
     }
 }
@@ -51,24 +57,28 @@ fn on_screen_len(s: &str) -> usize {
     s.chars().fold(0, count)
 }
 
-fn new_h_map<'a, K, const L: usize>(arr: [(&'a K, i32); L]) -> HashMap<&'a K, i32>
-where
-    K: Eq + Hash + ?Sized,
-{
-    HashMap::from(arr)
-}
+fn new_h_map<'a, K, const L: usize>(arr: [(&'a K, i32); L])
+    -> HashMap<&'a K, i32>
+    where
+        K: Eq + Hash + ?Sized,
+{ HashMap::from(arr) }
 
 use std::hash::Hash;
 
-fn find_lowest_cost_node<'a, K: Eq + Hash + ?Sized>(
+fn find_lowest_cost_node<'a, K: Eq + Hash + ?Sized>
+(
     costs: &HashMap<&'a K, i32>,
     processed: &HashSet<&K>,
-) -> Option<&'a K> {
+)
+    -> Option<&'a K>
+{
     let mut lowest_cost = i32::MAX;
     let mut lowest_cost_node: Option<&K> = None;
 
-    for (&node, &cost) in costs {
-        if !processed.contains(node) && cost < lowest_cost {
+    for (&node, &cost) in costs
+    {
+        if !processed.contains(node) && cost < lowest_cost
+        {
             lowest_cost = cost;
             lowest_cost_node = Some(node);
         }
@@ -81,23 +91,29 @@ fn find_lowest_cost_node<'a, K: Eq + Hash + ?Sized>(
 /// shortest path in a weighted graph.
 ///
 /// [!!] Cannot be used with negative weights. [!!]
-pub fn dejkstras_alg<K: Eq + Hash + ?Sized>(
+pub fn dejkstras_alg<K: Eq + Hash + ?Sized>
+(
     graph: &NodeGraph<&K, i32>,
     start: &K,
     finish: &K,
-) -> Option<i32> {
+)
+    -> Option<i32>
+{
     let mut costs = graph.get(start)?.clone();
     let (mut parents, mut processed) = (HashMap::new(), HashSet::new());
 
     let mut opt_node = find_lowest_cost_node(&costs, &processed);
-    while let Some(node) = opt_node {
+    while let Some(node) = opt_node
+    {
         let cost = costs[node];
         let neighbors = graph.get(node)?;
 
-        for n in neighbors.keys() {
+        for n in neighbors.keys()
+        {
             let new_cost = cost + neighbors[n];
             let old_cost = *costs.entry(n).or_insert(i32::MAX);
-            if new_cost < old_cost {
+            if new_cost < old_cost
+            {
                 costs.insert(n, new_cost);
                 parents.insert(n, node);
             }
@@ -111,7 +127,8 @@ pub fn dejkstras_alg<K: Eq + Hash + ?Sized>(
 }
 
 #[cfg(test)]
-mod tests {
+mod tests
+{
     use std::time::Duration;
 
     use algo_examples::benchmarking::{bench_once, bench_times, calc_iterations};
@@ -119,14 +136,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn is_emoji_test() {
+    fn is_emoji_test()
+    {
         "✨✅🚧❌"
             .chars()
             .for_each(|c| assert_eq!(is_emoji(c), true));
     }
 
     #[test]
-    fn emojis_len_and_count_test() {
+    fn emojis_len_and_count_test()
+    {
         assert_eq!(on_screen_len("✨✅🚧❌"), 8);
         assert_eq!(on_screen_len("✨ ✅🚧❌"), 9);
         assert_eq!(on_screen_len("✨ ✅ 🚧❌"), 10);
@@ -141,7 +160,8 @@ mod tests {
     }
 
     #[test]
-    fn dejkstras_algorithm_test() {
+    fn dejkstras_algorithm_test()
+    {
         let (start, finish, a, b, c, d) = ("start", "finish", "a", "b", "c", "d");
 
         let mut graph = NodeGraph::new();
@@ -184,7 +204,8 @@ mod tests {
     }
 
     #[test]
-    fn bench() {
+    fn bench()
+    {
         let (start, finish, a, b) = ("start", "finish", "a", "b");
 
         let mut graph = NodeGraph::new();
