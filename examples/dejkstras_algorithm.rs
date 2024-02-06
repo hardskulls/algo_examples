@@ -5,33 +5,29 @@ use algo_examples::shorthands::new_h_map;
 
 type NodeGraph<K, V> = HashMap<K, HashMap<K, V>>;
 
-fn main()
-{
+fn main() {
     let (start, a, b, finish) = ("start", "a", "b", "fin");
-    let (start_neighbors, b_neighbors, a_neighbors, finish_neighbors) =
-        (
-            new_h_map([(a, 6), (b, 2)]),
-            new_h_map([(a, 3), (finish, 5)]),
-            new_h_map([(finish, 1)]),
-            new_h_map([]),
-        );
-    let graph =
-        NodeGraph::from
-            ([
-                (start, start_neighbors),
-                (b, b_neighbors),
-                (a, a_neighbors),
-                (finish, finish_neighbors),
-            ]);
+    let (start_neighbors, b_neighbors, a_neighbors, finish_neighbors) = (
+        new_h_map([(a, 6), (b, 2)]),
+        new_h_map([(a, 3), (finish, 5)]),
+        new_h_map([(finish, 1)]),
+        new_h_map([]),
+    );
+    let graph = NodeGraph::from([
+        (start, start_neighbors),
+        (b, b_neighbors),
+        (a, a_neighbors),
+        (finish, finish_neighbors),
+    ]);
 
     let expected = 6;
     let shortest_path = dejkstras_alg(&graph, start, finish).unwrap();
 
-    let print =
-        if shortest_path <= expected
-        { format!("✨ It works! Answer is {shortest_path} ✅") }
-        else
-        { format!("🚧 Oh, shieeet, answer is {shortest_path} instead of {expected} ❌") };
+    let print = if shortest_path <= expected {
+        format!("✨ It works! Answer is {shortest_path} ✅")
+    } else {
+        format!("🚧 Oh, shieeet, answer is {shortest_path} instead of {expected} ❌")
+    };
     let border_len = on_screen_len(&print) + 4;
     let border = String::from_iter(vec!['-'; border_len]);
     println!("{border}\n| {print} |\n{border}");
@@ -39,19 +35,16 @@ fn main()
 
 use std::hash::Hash;
 
-fn find_lowest_cost_node<'a, K : Eq + Hash + ?Sized>
-(
-    costs : &HashMap<&'a K, i32>,
-    processed : &HashSet<&K>,
-)
-    -> Option<&'a K>
-{
+fn find_lowest_cost_node<'a, K: Eq + Hash + ?Sized>(
+    costs: &HashMap<&'a K, i32>,
+    processed: &HashSet<&K>,
+) -> Option<&'a K> {
     let (mut lowest_cost, mut lowest_cost_node) = (i32::MAX, None);
 
-    for (&node, &cost) in costs
-    {
-        if !processed.contains(node) && cost < lowest_cost
-        { (lowest_cost, lowest_cost_node) = (cost, Some(node)) }
+    for (&node, &cost) in costs {
+        if !processed.contains(node) && cost < lowest_cost {
+            (lowest_cost, lowest_cost_node) = (cost, Some(node))
+        }
     }
 
     lowest_cost_node
@@ -61,29 +54,23 @@ fn find_lowest_cost_node<'a, K : Eq + Hash + ?Sized>
 /// shortest path in a weighted graph.
 ///
 /// [!!] Cannot be used with negative weights. [!!]
-pub fn dejkstras_alg<K : Eq + Hash + ?Sized>
-(
-    graph : &NodeGraph<&K, i32>,
-    start : &K,
-    finish : &K,
-)
-    -> Option<i32>
-{
+pub fn dejkstras_alg<K: Eq + Hash + ?Sized>(
+    graph: &NodeGraph<&K, i32>,
+    start: &K,
+    finish: &K,
+) -> Option<i32> {
     let mut costs = graph.get(start)?.clone();
     let (mut parents, mut processed) = (HashMap::new(), HashSet::new());
 
     let mut opt_node = find_lowest_cost_node(&costs, &processed);
-    while let Some(node) = opt_node
-    {
+    while let Some(node) = opt_node {
         let cost = costs[node];
         let neighbors = graph.get(node)?;
 
-        for n in neighbors.keys()
-        {
+        for n in neighbors.keys() {
             let new_cost = cost + neighbors[n];
             let old_cost = *costs.entry(n).or_insert(i32::MAX);
-            if new_cost < old_cost
-            {
+            if new_cost < old_cost {
                 costs.insert(n, new_cost);
                 parents.insert(n, node);
             }
@@ -97,18 +84,16 @@ pub fn dejkstras_alg<K : Eq + Hash + ?Sized>
 }
 
 #[cfg(test)]
-mod tests
-{
+mod tests {
     use std::time::Duration;
 
     use algo_examples::benchmarking::{bench_once, bench_times, calc_iterations};
-    use algo_examples::formatting::{on_screen_len, is_emoji};
+    use algo_examples::formatting::{is_emoji, on_screen_len};
 
     use super::*;
 
     #[test]
-    fn dejkstras_algorithm_test()
-    {
+    fn dejkstras_algorithm_test() {
         let (start, finish, a, b, c, d) = ("start", "finish", "a", "b", "c", "d");
 
         let mut graph = NodeGraph::new();
@@ -151,8 +136,7 @@ mod tests
     }
 
     #[test]
-    fn bench()
-    {
+    fn bench() {
         let (start, finish, a, b) = ("start", "finish", "a", "b");
 
         let mut graph = NodeGraph::new();
